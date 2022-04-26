@@ -1,4 +1,4 @@
-const { GObject, GLib, Meta, Shell } = imports.gi;
+const { GObject, GLib, Meta, Shell, Clutter } = imports.gi;
 const Main = imports.ui.main;
 const Dash = imports.ui.dash;
 const AppFavorites = imports.ui.appFavorites;
@@ -9,6 +9,7 @@ var Dock = GObject.registerClass(
 		_init() {
 			super._init();
 			Main.layoutManager.addTopChrome(this);
+			this._showAppsIcon.showLabel = DockItemContainer.prototype.showLabel;
 			this.showAppsButton.connect("button-release-event", this._showAppsToggle.bind());
 			this.set_track_hover(true);
 			this.set_reactive(true);
@@ -61,6 +62,25 @@ var Dock = GObject.registerClass(
 				y2: this._monitor.y,
 				directions: Meta.BarrierDirection.POSITIVE_Y,
 			});
+		}
+
+		_createAppItem(app) {
+			let appIcon = new Dash.DashIcon(app);
+
+			appIcon.connect("menu-state-changed", (o, opened) => {
+				this._itemMenuStateChanged(item, opened);
+			});
+
+			let item = new DockItemContainer();
+			item.setChild(appIcon);
+
+			appIcon.label_actor = null;
+			item.setLabelText(app.get_name());
+
+			appIcon.icon.setIconSize(this.iconSize);
+			this._hookUpLabel(item, appIcon);
+
+			return item;
 		}
 
 		// Copycat from GS without running apps and separator
@@ -148,6 +168,35 @@ var Dock = GObject.registerClass(
 			for (let i = 0; i < addedItems.length; i++) addedItems[i].item.show(animate);
 
 			this._box.queue_relayout();
+		}
+	}
+);
+
+var DockItemContainer = GObject.registerClass(
+	class DockItemContainer extends Dash.DashItemContainer {
+		showLabel() {
+			if (!this._labelText) return;
+
+			this.label.set_text(this._labelText);
+			this.label.opacity = 0;
+			this.label.show();
+
+			let [stageX, stageY] = this.get_transformed_position();
+
+			const itemWidth = this.allocation.get_width();
+
+			const labelWidth = this.label.get_width();
+			const xOffset = Math.floor((itemWidth - labelWidth) / 2);
+			const x = Math.clamp(stageX + xOffset, 0, global.stage.width - labelWidth);
+
+			const y = this.get_height() + stageY;
+
+			this.label.set_position(x, y);
+			this.label.ease({
+				opacity: 255,
+				duration: Dash.DASH_ITEM_LABEL_SHOW_TIME,
+				mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+			});
 		}
 	}
 );
