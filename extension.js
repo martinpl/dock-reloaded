@@ -28,8 +28,11 @@ var Dock = GObject.registerClass(
 			});
 
 			this._pressureBarrier = new Layout.PressureBarrier(250, 1000, Shell.ActionMode.NORMAL);
-			this._pressureBarrier.addBarrier(this._createBarrier());
+			this._barrier = this._createBarrier();
+			this._pressureBarrier.addBarrier(this._barrier);
 			this._pressureBarrier.connect("trigger", () => this._revealDock(true));
+
+			this.connect("destroy", this._onDestroy.bind(this));
 		}
 
 		_showAppsToggle() {
@@ -56,10 +59,10 @@ var Dock = GObject.registerClass(
 		_createBarrier() {
 			return new Meta.Barrier({
 				display: global.display,
-				x1: this._monitor.x,
-				x2: this._monitor.x + this._monitor.width,
-				y1: this._monitor.y,
-				y2: this._monitor.y,
+				x1: 0,
+				x2: this._monitor.width,
+				y1: 0,
+				y2: 0,
 				directions: Meta.BarrierDirection.POSITIVE_Y,
 			});
 		}
@@ -169,6 +172,13 @@ var Dock = GObject.registerClass(
 
 			this._box.queue_relayout();
 		}
+
+		_onDestroy() {
+			this._pressureBarrier.destroy();
+			this._pressureBarrier = null;
+			this._barrier.destroy();
+			this._barrier = null;
+		}
 	}
 );
 
@@ -208,10 +218,8 @@ class Extension {
 	}
 
 	disable() {
-		this.dock.destory_all_children();
 		this.dock.destroy();
 		Main.overview.dash.show();
-		// TODO: Disconnects
 	}
 }
 
