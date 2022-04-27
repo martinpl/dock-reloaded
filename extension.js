@@ -208,6 +208,7 @@ class Extension {
 	}
 
 	disable() {
+		this.dock.destory_all_children();
 		this.dock.destroy();
 		Main.overview.dash.show();
 		// TODO: Disconnects
