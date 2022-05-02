@@ -6,7 +6,7 @@ const Layout = imports.ui.layout;
 
 var Dock = GObject.registerClass(
 	class Dock extends Dash.Dash {
-		_init() {
+		_init(monitor) {
 			super._init();
 			Main.layoutManager.addTopChrome(this);
 			this._showAppsIcon.showLabel = DockItemContainer.prototype.showLabel;
@@ -15,7 +15,7 @@ var Dock = GObject.registerClass(
 			this.set_reactive(true);
 			this.hide();
 
-			this._monitor = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+			this._monitor = monitor;
 			this.set_width(this._monitor.width);
 			this.set_position(this._monitor.x, 0);
 			this.set_style_class_name("dock");
@@ -215,12 +215,23 @@ var DockItemContainer = GObject.registerClass(
 class Extension {
 	enable() {
 		Main.overview.dash.hide();
-		this.dock = new Dock();
+		this.docks = [];
+		Main.layoutManager.monitors.forEach((monitor) => {
+			this.docks.push(new Dock(monitor));
+		});
+		Main.layoutManager.connect("monitors-changed", this._onMonitorsChanged.bind(this));
+	}
+
+	_onMonitorsChanged() {
+		this.disable();
+		this.enable();
 	}
 
 	disable() {
-		this.dock.destroy();
 		Main.overview.dash.show();
+		this.docks.forEach((dock) => {
+			dock.destroy();
+		});
 	}
 }
 
