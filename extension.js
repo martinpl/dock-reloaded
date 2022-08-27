@@ -21,10 +21,10 @@ var Dock = GObject.registerClass(
 			this.set_style_class_name("dock");
 
 			this._dragging = false;
-			Main.overview.connect("item-drag-begin", () => {
+			this._itemDragBeginSignal = Main.overview.connect("item-drag-begin", () => {
 				this._dragging = true;
 			});
-			Main.overview.connect("item-drag-end", () => {
+			this._itemDragEndSignal = Main.overview.connect("item-drag-end", () => {
 				this._dragging = false;
 			});
 
@@ -47,7 +47,7 @@ var Dock = GObject.registerClass(
 		_revealDock() {
 			this.show();
 
-			GLib.timeout_add(GLib.PRIORITY_DEFAULT, 550, () => {
+			this._revealTimeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 550, () => {
 				if (!this._dragging && !this.get_hover() && global.display.get_focus_window()) {
 					this.hide();
 					return GLib.SOURCE_REMOVE;
@@ -179,6 +179,22 @@ var Dock = GObject.registerClass(
 			this._pressureBarrier = null;
 			this._barrier.destroy();
 			this._barrier = null;
+
+			if (this._revealTimeout) {
+				GLib.Source.remove(this._revealTimeout);
+				this._revealTimeout = null;
+			}
+
+			if (this._itemDragBeginSignal) {
+				Main.overview.disconnect(this._itemDragBeginSignal);
+				this._itemDragBeginSignal = null;
+			}
+
+			if (this._itemDragEndSignal) {
+				Main.overview.disconnect(this._itemDragEndSignal);
+				this._itemDragEndSignal = null;
+			}
+
 		}
 	}
 );
@@ -219,7 +235,7 @@ class Extension {
 		Main.layoutManager.monitors.forEach((monitor) => {
 			this.docks.push(new Dock(monitor));
 		});
-		Main.layoutManager.connect("monitors-changed", this._onMonitorsChanged.bind(this));
+		this._monitorChangedSignal = Main.layoutManager.connect("monitors-changed", this._onMonitorsChanged.bind(this));
 	}
 
 	_onMonitorsChanged() {
@@ -232,6 +248,12 @@ class Extension {
 		this.docks.forEach((dock) => {
 			dock.destroy();
 		});
+		this.docks = [];
+
+		if (this._monitorChangedSignal) {
+			Main.layoutManager.disconnect(this._monitorChangedSignal);
+			this._monitorChangedSignal = null;
+		}
 	}
 }
 
