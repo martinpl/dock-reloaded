@@ -1,10 +1,14 @@
-const { GObject, GLib, Meta, Shell, Clutter } = imports.gi
-const Main = imports.ui.main
-const Dash = imports.ui.dash
-const AppFavorites = imports.ui.appFavorites
-const Layout = imports.ui.layout
+import GObject from "gi://GObject"
+import GLib from "gi://GLib"
+import Meta from "gi://Meta"
+import Shell from "gi://Shell"
+import Clutter from "gi://Clutter"
+import * as Main from "resource:///org/gnome/shell/ui/main.js"
+import * as Dash from "resource:///org/gnome/shell/ui/dash.js"
+import * as AppFavorites from "resource:///org/gnome/shell/ui/appFavorites.js"
+import * as Layout from "resource:///org/gnome/shell/ui/layout.js"
 
-var Dock = GObject.registerClass(
+const Dock = GObject.registerClass(
     class Dock extends Dash.Dash {
         _init(monitor) {
             super._init()
@@ -196,7 +200,7 @@ var Dock = GObject.registerClass(
     }
 )
 
-var DockItemContainer = GObject.registerClass(
+const DockItemContainer = GObject.registerClass(
     class DockItemContainer extends Dash.DashItemContainer {
         showLabel() {
             if (!this._labelText) return
@@ -225,7 +229,7 @@ var DockItemContainer = GObject.registerClass(
     }
 )
 
-class Extension {
+export default class DockReloaded {
     enable() {
         Main.overview.dash.hide()
         this.docks = []
@@ -252,8 +256,4 @@ class Extension {
             this._monitorChangedSignal = null
         }
     }
-}
-
-function init() {
-    return new Extension()
 }
