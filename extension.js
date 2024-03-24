@@ -63,7 +63,7 @@ const Dock = GObject.registerClass(
 
         _createBarrier() {
             return new Meta.Barrier({
-                display: global.display,
+                backend: global.backend,
                 x1: this._monitor.x,
                 x2: this._monitor.x + this._monitor.width,
                 y1: 0,
