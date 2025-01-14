@@ -49,6 +49,10 @@ const Dock = GObject.registerClass(
         }
 
         _revealDock() {
+            if (this._monitor.inFullscreen) {
+                return
+            }
+
             this.show()
 
             this._revealTimeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 550, () => {
