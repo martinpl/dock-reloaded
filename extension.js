@@ -56,7 +56,7 @@ const Dock = GObject.registerClass(
             this.show()
 
             this._revealTimeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 550, () => {
-                if (!this._dragging && !this.get_hover() && global.display.get_focus_window()) {
+                if (!this._dragging && !this.get_hover()) {
                     this.hide()
                     return GLib.SOURCE_REMOVE
                 } else {
