@@ -1,8 +1,8 @@
 {
-    "shell-version": ["49"],
+    "shell-version": ["50"],
     "uuid": "dock-reloaded@selfmade.pl",
     "url": "https://github.com/martinpl/dock-reloaded",
-    "version": "10",
+    "version": "11",
     "name": "Dock: Reloaded",
     "description": "Few tweaks for GNOME Dock: \n - moves it top \n - autohide ---> !reveals under cursor pressure! <--- \n - shows only favorites apps",
     "donations": {
